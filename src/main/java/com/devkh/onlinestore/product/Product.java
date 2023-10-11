@@ -22,7 +22,7 @@ public class Product {
     @Column(columnDefinition = "TEXT")
     private String description;
     private String image;
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.DETACH)
     @JoinColumn(name = "cate_id")
     private Category category;
 }

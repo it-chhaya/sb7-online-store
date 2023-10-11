@@ -3,8 +3,7 @@ package com.devkh.onlinestore.product;
 import com.devkh.onlinestore.product.web.CreateProductDto;
 import com.devkh.onlinestore.product.web.ProductDto;
 import com.devkh.onlinestore.product.web.UpdateProductDto;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.*;
 
 import java.util.List;
 
@@ -14,8 +13,9 @@ public interface ProductMapper {
     @Mapping(source = "categoryId", target = "category.id")
     Product fromCreateProductDto(CreateProductDto dto);
 
-    @Mapping(source = "categoryId", target = "category.id")
-    Product fromUpdateProductDto(UpdateProductDto dto);
+    @BeanMapping(nullValuePropertyMappingStrategy =
+            NullValuePropertyMappingStrategy.IGNORE)
+    void fromUpdateProductDto(@MappingTarget Product product, UpdateProductDto dto);
 
     ProductDto toProductDto(Product product);
 
