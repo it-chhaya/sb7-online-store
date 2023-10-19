@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -27,6 +28,23 @@ public class FileServiceImpl implements FileService {
 
     @Value("${file.base-uri}")
     private String fileBaseUri;
+
+    @Value("${file.download-uri}")
+    private String fileDownloadUri;
+
+    @Override
+    public Resource downloadByName(String name) {
+
+        Path path = Paths.get(serverPath + name);
+
+        if (Files.exists(path)) {
+            // Start loading the file by name
+            return UrlResource.from(path.toUri());
+        }
+
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                "Resource is not found");
+    }
 
     @Override
     public void deleteByName(String name) {
@@ -57,7 +75,32 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public List<FileDto> findAll() {
-        return null;
+
+        List<FileDto> fileDtoList = new ArrayList<>();
+
+        Path path = Paths.get(serverPath);
+
+        try {
+
+            Stream<Path> paths = Files.list(path);
+            List<Path> pathList = paths.toList();
+
+            for (Path p : pathList) {
+                Resource resource = UrlResource.from(p.toUri());
+                fileDtoList.add(FileDto.builder()
+                        .name(resource.getFilename())
+                        .uri(fileBaseUri + resource.getFilename())
+                        .downloadUri(fileDownloadUri + resource.getFilename())
+                        .extension(this.getExtension(resource.getFilename()))
+                        .size(resource.contentLength())
+                        .build());
+            }
+
+            return fileDtoList;
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -69,6 +112,7 @@ public class FileServiceImpl implements FileService {
             return FileDto.builder()
                     .name(name)
                     .uri(fileBaseUri + name)
+                    .downloadUri(fileDownloadUri + resource.getFilename())
                     .extension(this.getExtension(name))
                     .size(resource.contentLength())
                     .build();
@@ -116,6 +160,7 @@ public class FileServiceImpl implements FileService {
         return FileDto.builder()
                 .name(name)
                 .uri(uri)
+                .downloadUri(fileDownloadUri + name)
                 .extension(extension)
                 .size(size)
                 .build();
