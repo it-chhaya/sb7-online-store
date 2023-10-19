@@ -1,4 +1,4 @@
-package com.devkh.onlinestore.auth;
+package com.devkh.onlinestore.api.product;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -11,14 +11,14 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "roles")
-public class Role {
+@Table(name = "categories")
+public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
-    @ManyToMany(mappedBy = "roles")
-    private List<User> users;
-    @ManyToMany
-    private List<Authority> authorities;
+    @Column(columnDefinition = "TEXT")
+    private String description;
+    @OneToMany(mappedBy = "category")
+    private List<Product> products;
 }

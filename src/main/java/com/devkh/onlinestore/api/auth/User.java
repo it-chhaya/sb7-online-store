@@ -1,4 +1,4 @@
-package com.devkh.onlinestore.auth;
+package com.devkh.onlinestore.api.auth;
 
 import jakarta.persistence.*;
 import lombok.Getter;

@@ -1,8 +1,8 @@
-package com.devkh.onlinestore.product;
+package com.devkh.onlinestore.api.product;
 
-import com.devkh.onlinestore.product.web.CreateProductDto;
-import com.devkh.onlinestore.product.web.ProductDto;
-import com.devkh.onlinestore.product.web.UpdateProductDto;
+import com.devkh.onlinestore.api.product.web.ProductDto;
+import com.devkh.onlinestore.api.product.web.UpdateProductDto;
+import com.devkh.onlinestore.api.product.web.CreateProductDto;
 
 import java.util.List;
 

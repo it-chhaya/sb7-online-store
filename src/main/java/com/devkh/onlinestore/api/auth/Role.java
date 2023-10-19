@@ -1,4 +1,4 @@
-package com.devkh.onlinestore.auth;
+package com.devkh.onlinestore.api.auth;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -11,12 +11,14 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "authorities")
-public class Authority {
+@Table(name = "roles")
+public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
-    @ManyToMany(mappedBy = "authorities")
-    private List<Role> roles;
+    @ManyToMany(mappedBy = "roles")
+    private List<User> users;
+    @ManyToMany
+    private List<Authority> authorities;
 }

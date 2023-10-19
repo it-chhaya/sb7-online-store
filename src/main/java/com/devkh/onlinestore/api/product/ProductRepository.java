@@ -1,4 +1,4 @@
-package com.devkh.onlinestore.product;
+package com.devkh.onlinestore.api.product;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

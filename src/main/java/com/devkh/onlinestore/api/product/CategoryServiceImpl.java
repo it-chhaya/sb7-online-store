@@ -1,6 +1,6 @@
-package com.devkh.onlinestore.product;
+package com.devkh.onlinestore.api.product;
 
-import com.devkh.onlinestore.product.web.CategoryDto;
+import com.devkh.onlinestore.api.product.web.CategoryDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

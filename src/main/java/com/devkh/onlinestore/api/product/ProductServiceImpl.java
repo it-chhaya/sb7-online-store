@@ -1,14 +1,12 @@
-package com.devkh.onlinestore.product;
+package com.devkh.onlinestore.api.product;
 
-import com.devkh.onlinestore.product.web.CreateProductDto;
-import com.devkh.onlinestore.product.web.ProductDto;
-import com.devkh.onlinestore.product.web.UpdateProductDto;
+import com.devkh.onlinestore.api.product.web.CreateProductDto;
+import com.devkh.onlinestore.api.product.web.ProductDto;
+import com.devkh.onlinestore.api.product.web.UpdateProductDto;
 import com.devkh.onlinestore.util.RandomUtil;
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -61,16 +59,25 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void deleteByUuid(String uuid) {
-
+        Product product = productRepository.findByUuid(uuid).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                String.format("Product UUID = %s doesn't exist in db!", uuid))
+        );
+        productRepository.delete(product);
     }
 
     @Override
     public List<ProductDto> findAll() {
-        return null;
+        List<Product> products = productRepository.findAll();
+        return productMapper.toProductDtoList(products);
     }
 
     @Override
     public ProductDto findByUuid(String uuid) {
-        return null;
+        Product product = productRepository.findByUuid(uuid).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        String.format("Product UUID = %s doesn't exist in db!", uuid))
+        );
+        return productMapper.toProductDto(product);
     }
 }
