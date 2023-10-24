@@ -24,7 +24,8 @@ public class FileController {
         Resource resource = fileService.downloadByName(name);
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header("Content-Disposition", "attachment; filename=" + resource.getFilename())
+                .header("Content-Disposition",
+                        "attachment; filename=" + resource.getFilename())
                 .body(resource);
     }
 
