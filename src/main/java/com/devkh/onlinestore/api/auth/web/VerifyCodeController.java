@@ -26,14 +26,8 @@ public class VerifyCodeController {
     @PostMapping("/auth/verify")
     public String doVerifyCode(VerifyCodeDto verifyCodeDto,
                                @RequestParam String email) {
-
         String sixDigits = verifyCodeDto.get6Digits();
-
-        System.out.println("Email: " + email);
-        System.out.println(sixDigits);
-
         authService.verify(new VerifyDto(email, sixDigits));
-
         return "auth/verify-succeed";
     }
 }
