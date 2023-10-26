@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify Code</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <style>
+        body {
+            background: #f6f6f9;
+            padding: 4vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        form {
+            padding: 2rem;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+            max-width: 400px;
+            background: #fff;
+
+            .form-control {
+                display: block;
+                height: 50px;
+                margin-right: 0.5rem;
+                text-align: center;
+                font-size: 1.25rem;
+                min-width: 0;
+
+                &:last-child {
+                    margin-right: 0;
+                }
+            }
+        }
+    </style>
+</head>
+<body>
+<form th:action="@{/auth/verify}" th:object="${verifyCodeDto}" method="post">
+    <h4 class="text-center mb-4">Enter your code</h4>
+    <div class="d-flex mb-3">
+        <input type="hidden" th:value="${email}" name="email">
+        <input th:field="*{digit1}" name="digit1" type="tel" maxlength="1" pattern="[0-9]" class="form-control">
+        <input th:field="*{digit2}" name="digit2" type="tel" maxlength="1" pattern="[0-9]" class="form-control">
+        <input th:field="*{digit3}" name="digit3" type="tel" maxlength="1" pattern="[0-9]" class="form-control">
+        <input th:field="*{digit4}" name="digit4" type="tel" maxlength="1" pattern="[0-9]" class="form-control">
+        <input th:field="*{digit5}" name="digit5" type="tel" maxlength="1" pattern="[0-9]" class="form-control">
+        <input th:field="*{digit6}" name="digit6" type="tel" maxlength="1" pattern="[0-9]" class="form-control">
+    </div>
+    <button type="submit" class="w-100 btn btn-primary">Verify Email</button>
+</form>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+<script>
+    const form = document.querySelector('form')
+    const inputs = form.querySelectorAll('input')
+    const KEYBOARDS = {
+        backspace: 8,
+        arrowLeft: 37,
+        arrowRight: 39,
+    }
+
+    function handleInput(e) {
+        const input = e.target
+        const nextInput = input.nextElementSibling
+        if (nextInput && input.value) {
+            nextInput.focus()
+            if (nextInput.value) {
+                nextInput.select()
+            }
+        }
+    }
+
+    function handlePaste(e) {
+        e.preventDefault()
+        const paste = e.clipboardData.getData('text')
+        inputs.forEach((input, i) => {
+            input.value = paste[i] || ''
+        })
+    }
+
+    function handleBackspace(e) {
+        const input = e.target
+        if (input.value) {
+            input.value = ''
+            return
+        }
+
+        input.previousElementSibling.focus()
+    }
+
+    function handleArrowLeft(e) {
+        const previousInput = e.target.previousElementSibling
+        if (!previousInput) return
+        previousInput.focus()
+    }
+
+    function handleArrowRight(e) {
+        const nextInput = e.target.nextElementSibling
+        if (!nextInput) return
+        nextInput.focus()
+    }
+
+    form.addEventListener('input', handleInput)
+    inputs[0].addEventListener('paste', handlePaste)
+
+    inputs.forEach(input => {
+        input.addEventListener('focus', e => {
+            setTimeout(() => {
+                e.target.select()
+            }, 0)
+        })
+
+        input.addEventListener('keydown', e => {
+            switch (e.keyCode) {
+                case KEYBOARDS.backspace:
+                    handleBackspace(e)
+                    break
+                case KEYBOARDS.arrowLeft:
+                    handleArrowLeft(e)
+                    break
+                case KEYBOARDS.arrowRight:
+                    handleArrowRight(e)
+                    break
+                default:
+            }
+        })
+    })
+</script>
+</body>
+</html>

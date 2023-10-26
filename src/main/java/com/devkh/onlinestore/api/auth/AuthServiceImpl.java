@@ -20,6 +20,8 @@ import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +31,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthRepository authRepository;
     private final AuthMapper authMapper;
     private final JavaMailSender javaMailSender;
+    private final TemplateEngine templateEngine;
 
     @Value("${spring.mail.username}")
     private String adminMail;
@@ -40,18 +43,20 @@ public class AuthServiceImpl implements AuthService {
         userService.createNewUser(newUserDto);
 
         String verifiedCode = RandomUtil.generateCode();
-        System.out.println(verifiedCode);
-
         // Store verifiedCode in database
         authRepository.updateVerifiedCode(registerDto.username(), verifiedCode);
-
         // Send verifiedCode via email
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
         helper.setTo(newUserDto.email());
         helper.setFrom(adminMail);
         helper.setSubject("Online Store - Email Verification");
-        helper.setText(String.format("<h1>Your verified code: %s</h1>", verifiedCode), true);
+
+        Context context = new Context();
+        context.setVariable("verifiedCode", verifiedCode);
+        String htmlTemplate = templateEngine.process("auth/verify-mail", context);
+        helper.setText(htmlTemplate, true);
+
         javaMailSender.send(mimeMessage);
 
     }
