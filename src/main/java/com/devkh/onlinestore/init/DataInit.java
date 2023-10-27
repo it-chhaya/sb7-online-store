@@ -1,5 +1,7 @@
 package com.devkh.onlinestore.init;
 
+import com.devkh.onlinestore.api.product.Category;
+import com.devkh.onlinestore.api.product.CategoryRepository;
 import com.devkh.onlinestore.api.user.Authority;
 import com.devkh.onlinestore.api.user.AuthorityRepository;
 import com.devkh.onlinestore.api.user.Role;
@@ -19,9 +21,23 @@ public class DataInit {
 
     private final RoleRepository roleRepository;
     private final AuthorityRepository authorityRepository;
+    private final CategoryRepository categoryRepository;
 
     @PostConstruct
     public void init() {
+
+        categoryRepository.save(Category.builder()
+                .name("Electronic")
+                .description("Electronic")
+                .build());
+        categoryRepository.save(Category.builder()
+                .name("Technology")
+                .description("Technology")
+                .build());
+        categoryRepository.save(Category.builder()
+                .name("LifeStyle")
+                .description("LifeStyle")
+                .build());
 
         Authority readProduct = Authority.builder().name("product:read").build();
         Authority writeProduct = Authority.builder().name("product:write").build();
@@ -42,7 +58,7 @@ public class DataInit {
         authorityRepository.saveAll(userAuthorities);
 
         Set<Authority> fullAuthorities = new HashSet<>() {{
-           addAll(userAuthorities);
+            addAll(userAuthorities);
             addAll(productAuthorities);
         }};
 
@@ -61,8 +77,6 @@ public class DataInit {
                 ))
                 .build();
         roleRepository.saveAll(List.of(adminRole, staffRole, customerRole));
-
-
 
     }
 

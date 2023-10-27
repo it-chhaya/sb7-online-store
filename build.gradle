@@ -23,6 +23,9 @@ repositories {
 
 dependencies {
 
+    // Spring security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
     // Java Mail Sender
     implementation 'org.springframework.boot:spring-boot-starter-mail'
 
