@@ -35,5 +35,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Derived Query Method
     Boolean existsByUsernameAndIsDeletedFalse(String username);
     Boolean existsByEmailAndIsDeletedFalse(String email);
+    Optional<User> findByUsernameAndIsDeletedFalse(String username);
 
 }

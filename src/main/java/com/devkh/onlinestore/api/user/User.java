@@ -31,7 +31,7 @@ public class User {
     private String verifiedCode;
     private Boolean isVerified;
     private Boolean isDeleted;
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(joinColumns =
         @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns =

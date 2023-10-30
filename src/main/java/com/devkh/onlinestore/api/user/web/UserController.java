@@ -1,9 +1,12 @@
 package com.devkh.onlinestore.api.user.web;
 
 import com.devkh.onlinestore.api.user.UserService;
+import com.devkh.onlinestore.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -12,6 +15,12 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+
+    @GetMapping("/me")
+    public UserDto me(Authentication auth) {
+        return userService.me(auth);
+    }
+
 
     @PatchMapping("/{uuid}")
     public void updateByUuid(@PathVariable String uuid,
