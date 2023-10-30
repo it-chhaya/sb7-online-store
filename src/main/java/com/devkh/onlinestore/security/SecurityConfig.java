@@ -61,7 +61,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated());
 
         // TODO: Use default form login
-        http.formLogin(Customizer.withDefaults());
+        // http.formLogin(Customizer.withDefaults());
 
         // TODO: Configure HTTP Basic for Client Application. Example: Postman, Insomnia, ...
         http.httpBasic(Customizer.withDefaults());
