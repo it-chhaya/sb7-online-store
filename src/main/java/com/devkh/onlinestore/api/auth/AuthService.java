@@ -1,5 +1,6 @@
 package com.devkh.onlinestore.api.auth;
 
+import com.devkh.onlinestore.api.auth.web.AuthDto;
 import com.devkh.onlinestore.api.auth.web.LoginDto;
 import com.devkh.onlinestore.api.auth.web.RegisterDto;
 import com.devkh.onlinestore.api.auth.web.VerifyDto;
@@ -11,6 +12,6 @@ public interface AuthService {
 
     void verify(VerifyDto verifyDto);
 
-    void login(LoginDto loginDto);
+    AuthDto login(LoginDto loginDto);
 
 }
