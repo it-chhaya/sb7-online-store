@@ -20,6 +20,11 @@ public class AuthController {
     @Value("${app.base-uri}")
     private String appBaseUri;
 
+    @PostMapping("/token")
+    public AuthDto refreshToken(@Valid @RequestBody RefreshTokenDto refreshTokenDto) {
+        return authService.refreshToken(refreshTokenDto);
+    }
+
     @PostMapping("/login")
     public AuthDto login(@Valid @RequestBody LoginDto loginDto) {
         return authService.login(loginDto);
