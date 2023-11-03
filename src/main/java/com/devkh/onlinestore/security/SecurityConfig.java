@@ -1,5 +1,6 @@
 package com.devkh.onlinestore.security;
 
+import com.devkh.onlinestore.util.KeyUtil;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.KeySourceException;
 import com.nimbusds.jose.jwk.JWK;
@@ -42,6 +43,7 @@ public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
+    private final KeyUtil keyUtil;
 
     @Bean
     JwtAuthenticationProvider jwtAuthenticationProvider() throws JOSEException {

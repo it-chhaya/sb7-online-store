@@ -3,7 +3,6 @@ package com.devkh.onlinestore.api.user;
 import com.devkh.onlinestore.api.user.web.NewUserDto;
 import com.devkh.onlinestore.api.user.web.UpdateUserDto;
 import com.devkh.onlinestore.api.user.web.UserDto;
-import com.devkh.onlinestore.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -15,10 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,7 +33,7 @@ public class UserServiceImpl implements UserService {
         Jwt jwt = (Jwt) authentication.getPrincipal();
         log.info("Jwt Subject = {}", jwt.getSubject());
         log.info("Jwt Id = {}", jwt.getId());
-        User user = userRepository.findByUsernameAndIsDeletedFalse(jwt.getId())
+        User user = userRepository.findByUsernameAndIsDeletedFalseAndIsVerifiedTrue(jwt.getId())
                 .orElseThrow(() -> new UsernameNotFoundException("User is not found"));
         return userMapper.toUserDto(user);
     }
