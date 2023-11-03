@@ -48,9 +48,7 @@ public class SecurityConfig {
     @Bean
     JwtAuthenticationProvider jwtAuthenticationProvider() throws JOSEException {
         JwtAuthenticationProvider provider = new JwtAuthenticationProvider(
-                jwtRefreshTokenDecoder(
-                        refreshTokenRsaKey(
-                                keyPair())));
+                jwtRefreshTokenDecoder());
         return provider;
     }
 
@@ -111,29 +109,8 @@ public class SecurityConfig {
 
     @Bean
     @Primary
-    public KeyPair keyPair() {
-        try {
-            var keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(2048);
-            return keyPairGenerator.generateKeyPair();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Bean
-    @Primary
-    public RSAKey rsaKey(KeyPair keyPair) {
-        return new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
-                .privateKey(keyPair.getPrivate())
-                .keyID(UUID.randomUUID().toString())
-                .build();
-    }
-
-    @Bean
-    @Primary
-    JwtDecoder jwtDecoder(RSAKey rsaKey) throws JOSEException {
-        return NimbusJwtDecoder.withPublicKey(rsaKey.toRSAPublicKey()).build();
+    JwtDecoder jwtDecoder() throws JOSEException {
+        return NimbusJwtDecoder.withPublicKey(keyUtil.getAccessTokenPublicKey()).build();
     }
 
     @Bean
@@ -144,39 +121,19 @@ public class SecurityConfig {
 
     @Bean
     @Primary
-    public JWKSource<SecurityContext> jwkSource(RSAKey rsaKey) {
-        var jwkSet = new JWKSet(rsaKey);
-        return new JWKSource<SecurityContext>() {
-            @Override
-            public List<JWK> get(JWKSelector jwkSelector, SecurityContext context) throws KeySourceException {
-                return jwkSelector.select(jwkSet);
-            }
-        };
-    }
-
-    /* Start implement refresh token */
-    @Bean(name = "refreshTokenKeyPair")
-    public KeyPair refreshTokenKeyPair() {
-        try {
-            var keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(2048);
-            return keyPairGenerator.generateKeyPair();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Bean("refreshTokenRsaKey")
-    public RSAKey refreshTokenRsaKey(@Qualifier("refreshTokenKeyPair") KeyPair keyPair) {
-        return new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
-                .privateKey(keyPair.getPrivate())
+    public JWKSource<SecurityContext> jwkSource() {
+        JWK jwk = new RSAKey.Builder(keyUtil.getAccessTokenPublicKey())
+                .privateKey(keyUtil.getAccessTokenPrivateKey())
                 .keyID(UUID.randomUUID().toString())
                 .build();
+        var jwkSet = new JWKSet(jwk);
+        return (jwkSelector, context) -> jwkSelector.select(jwkSet);
     }
 
+
     @Bean("jwtRefreshTokenDecoder")
-    JwtDecoder jwtRefreshTokenDecoder(@Qualifier("refreshTokenRsaKey") RSAKey rsaKey) throws JOSEException {
-        return NimbusJwtDecoder.withPublicKey(rsaKey.toRSAPublicKey()).build();
+    JwtDecoder jwtRefreshTokenDecoder() throws JOSEException {
+        return NimbusJwtDecoder.withPublicKey(keyUtil.getRefreshTokenPublicKey()).build();
     }
 
     @Bean("jwtRefreshTokenEncoder")
@@ -185,14 +142,13 @@ public class SecurityConfig {
     }
 
     @Bean("refreshTokenJwkSource")
-    public JWKSource<SecurityContext> refreshTokenJwkSource(@Qualifier("refreshTokenRsaKey") RSAKey rsaKey) {
-        var jwkSet = new JWKSet(rsaKey);
-        return new JWKSource<SecurityContext>() {
-            @Override
-            public List<JWK> get(JWKSelector jwkSelector, SecurityContext context) throws KeySourceException {
-                return jwkSelector.select(jwkSet);
-            }
-        };
+    public JWKSource<SecurityContext> refreshTokenJwkSource() {
+        JWK jwk = new RSAKey.Builder(keyUtil.getRefreshTokenPublicKey())
+                .privateKey(keyUtil.getRefreshTokenPrivateKey())
+                .keyID(UUID.randomUUID().toString())
+                .build();
+        var jwkSet = new JWKSet(jwk);
+        return (jwkSelector, context) -> jwkSelector.select(jwkSet);
     }
 
 

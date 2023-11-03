@@ -90,7 +90,7 @@ public class KeyUtil {
 
         }
 
-        File directory = new File("token-keys");
+        File directory = new File("keys");
         System.out.println(directory.exists());
         System.out.println(directory.getAbsolutePath());
         if (!directory.exists()) {
