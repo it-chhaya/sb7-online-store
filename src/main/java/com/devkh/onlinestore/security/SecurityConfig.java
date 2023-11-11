@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -38,6 +39,7 @@ import java.util.UUID;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -67,7 +69,11 @@ public class SecurityConfig {
 
         // TODO: What you want to customize
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/**", "/api/v1/files/**").permitAll()
+                .requestMatchers("/api/v1/auth/**", "/api/v1/files/**", "/file/**", "/auth/**").permitAll()
+                .anyRequest().authenticated()
+        );
+        /*http.authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/v1/auth/**", "/api/v1/files/**", "/file/**", "/auth/**").permitAll()
                 .requestMatchers(
                         HttpMethod.GET,
                         "/api/v1/categories/**",
@@ -89,7 +95,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/v1/users/**").hasAuthority("SCOPE_user:write")
                 .requestMatchers(HttpMethod.PUT, "/api/v1/users/**").hasAuthority("SCOPE_user:update")
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/users/**").hasAuthority("SCOPE_user:delete")
-                .anyRequest().authenticated());
+                .anyRequest().authenticated());*/
 
         // TODO: Use default form login
         // http.formLogin(Customizer.withDefaults());
@@ -129,6 +135,7 @@ public class SecurityConfig {
         var jwkSet = new JWKSet(jwk);
         return (jwkSelector, context) -> jwkSelector.select(jwkSet);
     }
+
 
 
     @Bean("jwtRefreshTokenDecoder")

@@ -6,6 +6,7 @@ import com.devkh.onlinestore.api.mail.MailService;
 import com.devkh.onlinestore.api.user.User;
 import com.devkh.onlinestore.api.user.UserService;
 import com.devkh.onlinestore.api.user.web.NewUserDto;
+import com.devkh.onlinestore.security.CustomUserDetails;
 import com.devkh.onlinestore.util.RandomUtil;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -59,94 +61,105 @@ public class AuthServiceImpl implements AuthService {
     private String adminMail;
 
     @Override
-    public AuthDto refreshToken(RefreshTokenDto refreshTokenDto) {
-
-        Authentication auth = new BearerTokenAuthenticationToken(refreshTokenDto.refreshToken());
-        auth = jwtAuthenticationProvider.authenticate(auth);
-
-        Jwt jwt = (Jwt) auth.getPrincipal();
-        log.info("Name: {}", jwt.getId());
-        log.info("Name: {}", jwt.getSubject());
-
-        Instant now = Instant.now();
-
-        JwtClaimsSet jwtClaimsSet = JwtClaimsSet.builder()
-                .id(auth.getName())
-                .issuer("public")
-                .issuedAt(now)
-                .expiresAt(now.plus(1, ChronoUnit.SECONDS))
-                .subject("Access Token")
-                .audience(List.of("Public Client"))
-                .claim("scope", jwt.getClaimAsString("scope"))
-                .build();
-
-        JwtClaimsSet jwtRefreshTokenClaimsSet = JwtClaimsSet.builder()
-                .id(auth.getName())
-                .issuer("public")
-                .issuedAt(now)
-                .expiresAt(now.plus(24, ChronoUnit.HOURS))
-                .subject("Refresh Token")
-                .audience(List.of("Public Client"))
-                .claim("scope", jwt.getClaimAsString("scope"))
-                .notBefore(now.plus(1, ChronoUnit.SECONDS))
-                .build();
-
-        String accessToken = jwtEncoder.encode(JwtEncoderParameters.from(jwtClaimsSet)).getTokenValue();
-        String refreshToken = jwtRefreshTokenEncoder.encode(JwtEncoderParameters.from(jwtRefreshTokenClaimsSet)).getTokenValue();
-
-        return AuthDto.builder()
-                .type("Bearer")
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
-    }
-
-
-
-    @Override
     public AuthDto login(LoginDto loginDto) {
-
         Authentication auth = new UsernamePasswordAuthenticationToken(loginDto.username(), loginDto.password());
         auth = daoAuthenticationProvider.authenticate(auth);
 
         log.info("AUTH = {}", auth.getName());
         log.info("AUTH = {}", auth.getAuthorities());
 
-        Instant now = Instant.now();
         String scope = auth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(" "));
 
-        JwtClaimsSet jwtClaimsSet = JwtClaimsSet.builder()
-                .id(auth.getName())
-                .issuer("public")
-                .issuedAt(now)
-                .expiresAt(now.plus(1, ChronoUnit.SECONDS))
-                .subject("Access Token")
-                .audience(List.of("Public Client"))
-                .claim("scope", scope)
+        return AuthDto.builder()
+                .type("Bearer")
+                .accessToken(generateAccessToken(GenerateTokenDto.builder()
+                        .auth(auth.getName())
+                        .scope(scope)
+                        .expiration(Instant.now().plus(1, ChronoUnit.SECONDS))
+                        .build()))
+                .refreshToken(generateRefreshToken(GenerateTokenDto.builder()
+                        .auth(auth.getName())
+                        .scope(scope)
+                        .expiration( Instant.now().plus(30, ChronoUnit.DAYS))
+                        .build()))
                 .build();
+    }
 
-        JwtClaimsSet jwtRefreshTokenClaimsSet = JwtClaimsSet.builder()
-                .id(auth.getName())
-                .issuer("public")
-                .issuedAt(now)
-                .expiresAt(now.plus(24, ChronoUnit.HOURS))
-                .subject("Refresh Token")
-                .audience(List.of("Public Client"))
-                .claim("scope", scope)
-                .notBefore(now.plus(1, ChronoUnit.SECONDS))
-                .build();
+    @Override
+    public AuthDto refreshToken(RefreshTokenDto refreshTokenDto) {
+        Authentication auth = new BearerTokenAuthenticationToken(refreshTokenDto.refreshToken());
+        auth = jwtAuthenticationProvider.authenticate(auth);
 
-        String accessToken = jwtEncoder.encode(JwtEncoderParameters.from(jwtClaimsSet)).getTokenValue();
-        String refreshToken = jwtRefreshTokenEncoder.encode(JwtEncoderParameters.from(jwtRefreshTokenClaimsSet)).getTokenValue();
+        Jwt jwt = (Jwt) auth.getPrincipal();
+        log.info("Jwt Name = {}", jwt.getId());
+        log.info("Jwt Subject = {}", jwt.getSubject());
 
         return AuthDto.builder()
                 .type("Bearer")
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
+                .accessToken(generateAccessToken(GenerateTokenDto.builder()
+                        .auth(jwt.getId())
+                        .scope(jwt.getClaimAsString("scope"))
+                        .expiration(Instant.now().plus(1, ChronoUnit.SECONDS))
+                        .build()))
+                .refreshToken(generateRefreshTokenCheckDuration(GenerateTokenDto.builder()
+                        .auth(jwt.getId())
+                        .scope(jwt.getClaimAsString("scope"))
+                        .previousToken(refreshTokenDto.refreshToken())
+                        .expiration(Instant.now().plus(30, ChronoUnit.DAYS))
+                        .duration(Duration.between(Instant.now(), jwt.getExpiresAt()))
+                        .checkDurationNumber(7)
+                        .build()))
                 .build();
     }
+
+    private String generateAccessToken(GenerateTokenDto generateTokenDto) {
+        JwtClaimsSet jwtClaimsSet = JwtClaimsSet.builder()
+                .id(generateTokenDto.auth())
+                .issuer("public")
+                .issuedAt(Instant.now())
+                .expiresAt(generateTokenDto.expiration())
+                .subject("Access Token")
+                .audience(List.of("Public Client"))
+                .claim("scope", generateTokenDto.scope())
+                .build();
+        return jwtEncoder.encode(JwtEncoderParameters.from(jwtClaimsSet)).getTokenValue();
+    }
+
+    private String generateRefreshToken(GenerateTokenDto generateTokenDto) {
+        JwtClaimsSet jwtRefreshTokenClaimsSet = JwtClaimsSet.builder()
+                .id(generateTokenDto.auth())
+                .issuer("public")
+                .issuedAt(Instant.now())
+                .expiresAt(generateTokenDto.expiration())
+                .subject("Refresh Token")
+                .audience(List.of("Public Client"))
+                .claim("scope", generateTokenDto.scope())
+                .build();
+        return jwtRefreshTokenEncoder.encode(JwtEncoderParameters.from(jwtRefreshTokenClaimsSet)).getTokenValue();
+    }
+
+
+
+    private String generateRefreshTokenCheckDuration(GenerateTokenDto generateTokenDto) {
+        log.info("Duration : {}", generateTokenDto.duration().toDays());
+        if (generateTokenDto.duration().toDays() < generateTokenDto.checkDurationNumber()) {
+            JwtClaimsSet jwtRefreshTokenClaimsSet = JwtClaimsSet.builder()
+                    .id(generateTokenDto.auth())
+                    .issuer("public")
+                    .issuedAt(Instant.now())
+                    .expiresAt(generateTokenDto.expiration())
+                    .subject("Refresh Token")
+                    .audience(List.of("Public Client"))
+                    .claim("scope", generateTokenDto.scope())
+                    .build();
+            return jwtRefreshTokenEncoder.encode(JwtEncoderParameters.from(jwtRefreshTokenClaimsSet)).getTokenValue();
+        }
+        return generateTokenDto.previousToken();
+    }
+
+
 
     @Transactional
     @Override
